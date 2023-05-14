@@ -11,7 +11,7 @@ This is a React project bootstrapped with Vite, Chakra UI, and TypeScript.
 
 ## Available Scripts
 
-In the project directory, you can run:
+In the project directory, you can run: 
 
 ### `npm run dev`
 

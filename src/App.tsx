@@ -1,18 +1,37 @@
-import React, { useState } from 'react'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import Navigation from './components/Navigation'
-import LandingPage from './pages/LandingPage'
+import { AuthProvider } from 'contexts/AuthContext'
+import PrivateRoute from 'auth/PrivateRoute'
+import { authRoutes } from 'auth/authRoutes'
+import { LoadingPage, PageNotFound } from '@jaedag/admin-portal-core'
+import { Suspense } from 'react'
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <BrowserRouter>
-      <Navigation />
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-      </Routes>
-    </BrowserRouter>
+    <AuthProvider>
+      <BrowserRouter>
+        <Navigation />
+        <Suspense fallback={<LoadingPage />}>
+          <Routes>
+            {[...authRoutes].map((route, i) => (
+              <Route
+                key={i}
+                path={route.path}
+                element={
+                  <PrivateRoute
+                    roles={route.roles}
+                    placeholder={route.placeholder}
+                  >
+                    <route.element />
+                  </PrivateRoute>
+                }
+              />
+            ))}
+            <Route path="*" element={<PageNotFound />} />
+          </Routes>
+        </Suspense>
+      </BrowserRouter>
+    </AuthProvider>
   )
 }
 
