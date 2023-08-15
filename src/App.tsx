@@ -3,10 +3,10 @@ import Navigation from './components/Navigation'
 import { AuthProvider } from 'contexts/AuthContext'
 import PrivateRoute from 'auth/PrivateRoute'
 import { authRoutes } from 'auth/authRoutes'
-import { LoadingPage, PageNotFound } from '@jaedag/admin-portal-core'
+import { LoadingPage, PageNotFound } from '@jaedag/admin-portal-react-core'
 import { Suspense } from 'react'
 
-function App() {
+const App = () => {
   return (
     <AuthProvider>
       <BrowserRouter>

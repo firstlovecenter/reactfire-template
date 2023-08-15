@@ -13,11 +13,12 @@ import {
   Text,
 } from '@chakra-ui/react'
 import { useAuth } from 'contexts/AuthContext'
-import { Form, Formik, FormikHelpers } from 'formik'
 import * as Yup from 'yup'
 import { useState } from 'react'
-import { Input } from '@jaedag/admin-portal-core'
+import { Input } from '@jaedag/admin-portal-react-core'
 import { Link as RouterLink, useNavigate } from 'react-router-dom'
+import { yupResolver } from '@hookform/resolvers/yup'
+import { useForm } from 'react-hook-form'
 
 const ForgotPassword = () => {
   const [error, setError] = useState('')
@@ -32,22 +33,25 @@ const ForgotPassword = () => {
 
   const validationSchema = Yup.object({
     email: Yup.string().email().required(),
+    password: Yup.string().required(),
   })
 
-  const onSubmit = async (
-    values: typeof initialValues,
-    onSubmitProps: FormikHelpers<typeof initialValues>
-  ) => {
-    const { setSubmitting } = onSubmitProps
+  const {
+    handleSubmit,
+    control,
+    formState: { errors, isSubmitting },
+  } = useForm<typeof initialValues>({
+    resolver: yupResolver(validationSchema),
+    defaultValues: initialValues,
+  })
+
+  const onSubmit = async (values: typeof initialValues) => {
     try {
-      setSubmitting(true)
       await resetPassword(values.email)
       setMessage('Check your inbox for further instructions')
     } catch (error) {
       setError('Failed to reset password')
     }
-
-    setSubmitting(false)
   }
 
   return (
@@ -76,27 +80,25 @@ const ForgotPassword = () => {
               )}
               <Text>{JSON.stringify(currentUser?.email)}</Text>
 
-              <Formik
-                initialValues={initialValues}
-                validationSchema={validationSchema}
-                onSubmit={onSubmit}
-              >
-                {(formik) => (
-                  <Form>
-                    <Input name="email" label="Email" size="lg" />
+              <form onSubmit={handleSubmit(onSubmit)}>
+                <Input
+                  name="email"
+                  label="Email"
+                  size="lg"
+                  control={control}
+                  errors={errors}
+                />
 
-                    <Button
-                      width="100%"
-                      type="submit"
-                      size="lg"
-                      marginTop={5}
-                      isLoading={formik.isSubmitting}
-                    >
-                      Reset Password
-                    </Button>
-                  </Form>
-                )}
-              </Formik>
+                <Button
+                  width="100%"
+                  type="submit"
+                  size="lg"
+                  marginTop={5}
+                  isLoading={isSubmitting}
+                >
+                  Reset Password
+                </Button>
+              </form>
 
               <Container marginTop={3}>
                 <Text

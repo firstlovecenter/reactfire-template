@@ -15,11 +15,12 @@ import {
   Text,
 } from '@chakra-ui/react'
 import { useAuth } from 'contexts/AuthContext'
-import { Form, Formik, FormikHelpers } from 'formik'
 import * as Yup from 'yup'
 import { useState } from 'react'
-import { Input } from '@jaedag/admin-portal-core'
+import { Input } from '@jaedag/admin-portal-react-core'
+import { yupResolver } from '@hookform/resolvers/yup'
 import { Link as RouterLink, useNavigate } from 'react-router-dom'
+import { useForm } from 'react-hook-form'
 
 const LogIn = () => {
   const [show, setShow] = useState(false)
@@ -38,20 +39,22 @@ const LogIn = () => {
     password: Yup.string().min(6).required(),
   })
 
-  const onSubmit = async (
-    values: typeof initialValues,
-    onSubmitProps: FormikHelpers<typeof initialValues>
-  ) => {
-    const { setSubmitting } = onSubmitProps
+  const {
+    handleSubmit,
+    control,
+    formState: { errors, isSubmitting },
+  } = useForm<typeof initialValues>({
+    resolver: yupResolver(validationSchema),
+    defaultValues: initialValues,
+  })
+
+  const onSubmit = async (values: typeof initialValues) => {
     try {
-      setSubmitting(true)
       await login(values.email, values.password)
       navigate('/')
     } catch (error) {
       setError('Failed to log in')
     }
-
-    setSubmitting(false)
   }
 
   return (
@@ -72,40 +75,40 @@ const LogIn = () => {
               )}
               <Text>{JSON.stringify(currentUser?.email)}</Text>
 
-              <Formik
-                initialValues={initialValues}
-                validationSchema={validationSchema}
-                onSubmit={onSubmit}
-              >
-                {(formik) => (
-                  <Form>
-                    <Input name="email" label="Email" size="lg" />
-                    <InputGroup size="lg" marginY={5}>
-                      <Input
-                        // paddingRight="4.5rem"
-                        name="password"
-                        type={show ? 'text' : 'password'}
-                        placeholder="Enter password"
-                      />
-                      <InputRightElement width="4.5rem">
-                        <Button h="1.75rem" size="sm" onClick={handleClick}>
-                          {show ? 'Hide' : 'Show'}
-                        </Button>
-                      </InputRightElement>
-                    </InputGroup>
-
-                    <Button
-                      width="100%"
-                      type="submit"
-                      size="lg"
-                      marginTop={5}
-                      isLoading={formik.isSubmitting}
-                    >
-                      Log In
+              <form onSubmit={handleSubmit(onSubmit)}>
+                <Input
+                  name="email"
+                  label="Email"
+                  size="lg"
+                  control={control}
+                  errors={errors}
+                />
+                <InputGroup size="lg" marginY={5}>
+                  <Input
+                    // paddingRight="4.5rem"
+                    name="password"
+                    type={show ? 'text' : 'password'}
+                    placeholder="Enter password"
+                    control={control}
+                    errors={errors}
+                  />
+                  <InputRightElement width="4.5rem">
+                    <Button h="1.75rem" size="sm" onClick={handleClick}>
+                      {show ? 'Hide' : 'Show'}
                     </Button>
-                  </Form>
-                )}
-              </Formik>
+                  </InputRightElement>
+                </InputGroup>
+
+                <Button
+                  width="100%"
+                  type="submit"
+                  size="lg"
+                  marginTop={5}
+                  isLoading={isSubmitting}
+                >
+                  Log In
+                </Button>
+              </form>
 
               <Container marginTop={3}>
                 <Text

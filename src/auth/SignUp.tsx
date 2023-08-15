@@ -15,11 +15,12 @@ import {
   Text,
 } from '@chakra-ui/react'
 import { useAuth } from 'contexts/AuthContext'
-import { Form, Formik, FormikHelpers } from 'formik'
 import * as Yup from 'yup'
 import { useState } from 'react'
-import { Input } from '@jaedag/admin-portal-core'
+import { Input } from '@jaedag/admin-portal-react-core'
+import { yupResolver } from '@hookform/resolvers/yup'
 import { Link as RouterLink, useNavigate } from 'react-router-dom'
+import { useForm } from 'react-hook-form'
 
 const SignUp = () => {
   const [show, setShow] = useState(false)
@@ -42,19 +43,22 @@ const SignUp = () => {
       .required('Required'),
   })
 
-  const onSubmit = async (
-    values: typeof initialValues,
-    onSubmitProps: FormikHelpers<typeof initialValues>
-  ) => {
-    const { setSubmitting } = onSubmitProps
+  const {
+    handleSubmit,
+    control,
+    formState: { errors, isSubmitting },
+  } = useForm<typeof initialValues>({
+    resolver: yupResolver(validationSchema),
+    defaultValues: initialValues,
+  })
+
+  const onSubmit = async (values: typeof initialValues) => {
     try {
-      setSubmitting(true)
       await signup(values.email, values.password)
       navigate('/')
     } catch (error) {
       setError('Failed to create an account')
     }
-    setSubmitting(false)
   }
 
   return (
@@ -75,55 +79,57 @@ const SignUp = () => {
               )}
               <Text>{JSON.stringify(currentUser?.email)}</Text>
 
-              <Formik
-                initialValues={initialValues}
-                validationSchema={validationSchema}
-                onSubmit={onSubmit}
-              >
-                {(formik) => (
-                  <Form>
-                    <Input size="lg" name="email" label="Email" />
-                    <InputGroup size="md" marginY={5}>
-                      <Input
-                        // paddingRight="4.5rem"
-                        size="lg"
-                        name="password"
-                        type={show ? 'text' : 'password'}
-                        placeholder="Enter password"
-                      />
-                      <InputRightElement width="4.5rem">
-                        <Button h="1.75rem" size="sm" onClick={handleClick}>
-                          {show ? 'Hide' : 'Show'}
-                        </Button>
-                      </InputRightElement>
-                    </InputGroup>
-                    <InputGroup size="md">
-                      <Input
-                        size="lg"
-                        // paddingRight="4.5rem"
-                        name="passwordConfirm"
-                        type={show ? 'text' : 'password'}
-                        placeholder="Confirm password"
-                      />
-                      <InputRightElement width="4.5rem">
-                        <Button h="1.75rem" size="sm" onClick={handleClick}>
-                          {show ? 'Hide' : 'Show'}
-                        </Button>
-                      </InputRightElement>
-                    </InputGroup>
-
-                    <Button
-                      size="lg"
-                      width="100%"
-                      type="submit"
-                      marginTop={5}
-                      isLoading={formik.isSubmitting}
-                    >
-                      Sign Up
+              <form onSubmit={handleSubmit(onSubmit)}>
+                <Input
+                  size="lg"
+                  name="email"
+                  label="Email"
+                  control={control}
+                  errors={errors}
+                />
+                <InputGroup size="md" marginY={5}>
+                  <Input
+                    // paddingRight="4.5rem"
+                    size="lg"
+                    name="password"
+                    type={show ? 'text' : 'password'}
+                    placeholder="Enter password"
+                    control={control}
+                    errors={errors}
+                  />
+                  <InputRightElement width="4.5rem">
+                    <Button h="1.75rem" size="sm" onClick={handleClick}>
+                      {show ? 'Hide' : 'Show'}
                     </Button>
-                  </Form>
-                )}
-              </Formik>
+                  </InputRightElement>
+                </InputGroup>
+                <InputGroup size="md">
+                  <Input
+                    size="lg"
+                    // paddingRight="4.5rem"
+                    name="passwordConfirm"
+                    type={show ? 'text' : 'password'}
+                    placeholder="Confirm password"
+                    control={control}
+                    errors={errors}
+                  />
+                  <InputRightElement width="4.5rem">
+                    <Button h="1.75rem" size="sm" onClick={handleClick}>
+                      {show ? 'Hide' : 'Show'}
+                    </Button>
+                  </InputRightElement>
+                </InputGroup>
+
+                <Button
+                  size="lg"
+                  width="100%"
+                  type="submit"
+                  marginTop={5}
+                  isLoading={isSubmitting}
+                >
+                  Sign Up
+                </Button>
+              </form>
             </CardBody>
           </Card>
           <Center width={'100%'} marginTop={2}>
